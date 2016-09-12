@@ -1,0 +1,18 @@
+[
+  {
+    "ParameterKey": "CIDR",
+    "ParameterValue": "10.1"
+  },
+  {
+    "ParameterKey": "SSHIP",
+    "ParameterValue": "115.66.180.193/32"
+  },
+  {
+    "ParameterKey": "AZa",
+    "ParameterValue": "us-west-2a"
+  },
+  {
+    "ParameterKey": "AZb",
+    "ParameterValue": "us-west-2b"
+  }
+]

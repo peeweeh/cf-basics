@@ -1,0 +1,483 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Paul's Cloudformation Template",
+  "Metadata": {},
+  "Parameters": {
+    "CIDR": {
+      "Default": "10.1",
+      "Type": "String",
+      "Description": ""
+    },
+    "SSHIP": {
+      "Default": "10.0.1.1/32",
+      "Type": "String",
+      "Description": ""
+    },
+    "AZa": {
+      "Default": "ap-southeast-1a",
+      "Type": "String",
+      "Description": ""
+    },
+    "AZb": {
+      "Default": "ap-southeast-1b",
+      "Type": "String",
+      "Description": ""
+    }
+  },
+  "Mappings": {},
+  "Conditions": {},
+  "Resources": {
+    "VPC": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "CidrBlock": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "CIDR"
+              },
+              ".0.0/16"
+            ]
+          ]
+        },
+        "EnableDnsHostnames": true,
+        "Tags": [
+          {
+            "Value": {
+              "Ref": "AWS::StackName"
+            },
+            "Key": "Name"
+          }
+        ]
+      }
+    },
+    "PrivateA": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "AvailabilityZone": {
+          "Ref": "AZa"
+        },
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "CidrBlock": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "CIDR"
+              },
+              ".1.0/24"
+            ]
+          ]
+        },
+        "Tags": [
+          {
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "-private-a"
+                ]
+              ]
+            },
+            "Key": "Name"
+          }
+        ]
+      }
+    },
+    "PrivateB": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "AvailabilityZone": {
+          "Ref": "AZb"
+        },
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "CidrBlock": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "CIDR"
+              },
+              ".2.0/24"
+            ]
+          ]
+        },
+        "Tags": [
+          {
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "-private-b"
+                ]
+              ]
+            },
+            "Key": "Name"
+          }
+        ]
+      }
+    },
+    "PublicA": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "AvailabilityZone": {
+          "Ref": "AZa"
+        },
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "CidrBlock": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "CIDR"
+              },
+              ".3.0/24"
+            ]
+          ]
+        },
+        "Tags": [
+          {
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "-public-a"
+                ]
+              ]
+            },
+            "Key": "Name"
+          }
+        ]
+      }
+    },
+    "PublicB": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "AvailabilityZone": {
+          "Ref": "AZb"
+        },
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "CidrBlock": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "CIDR"
+              },
+              ".4.0/24"
+            ]
+          ]
+        },
+        "Tags": [
+          {
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "-public-b"
+                ]
+              ]
+            },
+            "Key": "Name"
+          }
+        ]
+      }
+    },
+    "IGW": {
+      "Type": "AWS::EC2::InternetGateway",
+      "Properties": {
+        "Tags": [
+          {
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "-igw"
+                ]
+              ]
+            },
+            "Key": "Name"
+          }
+        ]
+      }
+    },
+    "AttachIGW": {
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "InternetGatewayId": {
+          "Ref": "IGW"
+        }
+      }
+    },
+    "PublicRTB": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "Tags": [
+          {
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "-public-rtb"
+                ]
+              ]
+            },
+            "Key": "Name"
+          }
+        ]
+      }
+    },
+    "PublicRTBIGW": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "GatewayId": {
+          "Ref": "IGW"
+        },
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "RouteTableId": {
+          "Ref": "PublicRTB"
+        }
+      }
+    },
+    "PublicRTBAssocA": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "PublicA"
+        },
+        "RouteTableId": {
+          "Ref": "PublicRTB"
+        }
+      }
+    },
+    "PublicRTBAssocB": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "PublicB"
+        },
+        "RouteTableId": {
+          "Ref": "PublicRTB"
+        }
+      }
+    },
+    "rdsDBSubnetGroup": {
+      "Type": "AWS::RDS::DBSubnetGroup",
+      "Properties": {
+        "DBSubnetGroupDescription": "RDS Subnet Group for Private",
+        "SubnetIds": [
+          {
+            "Ref": "PrivateA"
+          },
+          {
+            "Ref": "PrivateB"
+          }
+        ],
+        "Tags": [
+          {
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "-rds-subnet-group"
+                ]
+              ]
+            },
+            "Key": "Name"
+          }
+        ]
+      }
+    },
+    "WebSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Allow Web Access",
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "80",
+            "ToPort": "80",
+            "CidrIp": "0.0.0.0/0"
+          }
+        ],
+        "Tags": [
+          {
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "-web-sg"
+                ]
+              ]
+            },
+            "Key": "Name"
+          }
+        ]
+      }
+    },
+    "OfficeSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Allows SSH Access to the VPC",
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "22",
+            "ToPort": "22",
+            "CidrIp": {
+              "Ref": "SSHIP"
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "-office-sg"
+                ]
+              ]
+            },
+            "Key": "Name"
+          }
+        ]
+      }
+    },
+    "DBSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Allow Instance Access",
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "3306",
+            "ToPort": "3306",
+            "SourceSecurityGroupId": {
+              "Ref": "WebSecurityGroup"
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "-rds-sg"
+                ]
+              ]
+            },
+            "Key": "Name"
+          }
+        ]
+      }
+    },
+    "CacheSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Cache Access",
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "11211",
+            "ToPort": "11211",
+            "SourceSecurityGroupId": {
+              "Ref": "WebSecurityGroup"
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "-cache-sg"
+                ]
+              ]
+            },
+            "Key": "Name"
+          }
+        ]
+      }
+    },
+    "SettingsBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": {
+          "Fn::Join": [
+            "",
+            [
+              "",
+              {
+                "Ref": "VPC"
+              }
+            ]
+          ]
+        }
+      }
+    }
+  },
+  "Outputs": {}
+}

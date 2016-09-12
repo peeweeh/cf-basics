@@ -6,11 +6,7 @@
       "Type": "String",
       "Description": ""
     },
-    "LaunchAMI": {
-      "Default": "ami-68d8e93a",
-      "Type": "String",
-      "Description": "AMI Of initial Servers"
-    },
+
     "project": {
       "Default": "cloudready",
       "Type": "String",
@@ -21,11 +17,7 @@
       "Type": "String",
       "Description": ""
     },
-    "EC2Size": {
-      "Default": "t2.micro",
-      "Type": "String",
-      "Description": ""
-    },
+  
     "IAMProfile": {
       "Default": "iam",
       "Type": "String",
