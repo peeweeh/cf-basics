@@ -1,0 +1,22 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Role for Cross Account Access. https://github.com/peeweeh/cf-basics
+Parameters: 
+  RoleARN: 
+    Type: String
+    Default: arn:aws:iam::00:role/aa
+    Description: Name of the Policy
+Resources:
+  CrossAccountManagedPolicy:
+    Type: "AWS::IAM::ManagedPolicy"
+    Description: "Policy for assuming a role in another account"
+
+    Properties: 
+      PolicyDocument: 
+        Version: "2012-10-17"
+        Statement: 
+          - 
+            Effect: "Allow"
+            Action: 
+              - "sts:AssumeRole"
+            Resource:
+              - Ref: RoleARN
