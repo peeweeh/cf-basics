@@ -1,0 +1,92 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  MainVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: 'false'
+      EnableDnsHostnames: 'false'
+
+  AttachGateway:
+  Type: AWS::EC2::VPCGatewayAttachment
+  Properties:
+    VpcId:
+      Ref: MainVPC
+    InternetGatewayId:
+      Ref: myInternetGateway
+  PublicSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: MainVPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: "ap-southeast-1a"
+      Tags:
+      - Key: Name
+        Value: "Public Subnet A"
+  PublicSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: MainVPC
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: "ap-southeast-1b"
+      Tags:
+      - Key: Name
+        Value: "Public Subnet B"
+  PrivateRoute:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: Main VPC
+      Tags:
+      - Key: Name
+        Value: "Public Route Table"
+  PrivateSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: MainVPC
+      CidrBlock: 10.0.3.0/24
+      AvailabilityZone: "ap-southeast-1a"
+      Tags:
+      - Key: Name
+        Value: "Private Subnet A"
+  PrivateSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: MainVPC
+      CidrBlock: 10.0.4.0/24
+      AvailabilityZone: "ap-southeast-1b"
+      Tags:
+      - Key: Name
+        Value: "Private Subnet B"
+  PublicRoute:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: MainVPC
+      Tags:
+      - Key: Name
+        Value: "Public Route Table"
+  PublicRoutePublicSubnetA:
+      Type: AWS::EC2::SubnetRouteTableAssociation
+      Properties:
+        SubnetId:
+          Ref: PublicSubnetA
+        RouteTableId:
+          Ref: PublicRoute
+  PublicRoutePublicSubnetB:
+      Type: AWS::EC2::SubnetRouteTableAssociation
+      Properties:
+        SubnetId:
+          Ref: PublicSubnetB
+        RouteTableId:
+          Ref: PublicRoute
+  IGW:
+    Type: "AWS::EC2::InternetGateway"
+    Properties:
+      Tags:
+      - Key: Name
+        Value: IGW

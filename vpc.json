@@ -89,6 +89,7 @@
   "VPCMain": {
     "Type": "AWS::EC2::VPC",
     "Properties": {
+      "Tags" : [ { "Key" : "Name", "Value" : { "Fn::Join" : [ "", [ "vpc-", {"Ref" : "AWS::StackName" } ] ] } } ],
       "CidrBlock": "10.0.0.0/16",
       "EnableDnsSupport": true,
       "InstanceTenancy": "default",
