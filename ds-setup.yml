@@ -1,0 +1,231 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Sets up Resources that Trend Micro Deep Security Requires
+Parameters: 
+
+  VPC: 
+    Type: AWS::EC2::VPC::Id
+    Description: VPC to be Used
+  PublicSubnetA: 
+    Type: AWS::EC2::Subnet::Id
+    Description: First Public Subnet
+  PublicSubnetB: 
+    Type: AWS::EC2::Subnet::Id
+    Description: Second Public Subnet
+  PrivateSubnetA: 
+    Type: AWS::EC2::Subnet::Id
+    Description: First Private Subnet
+  PrivateSubnetB: 
+    Type: AWS::EC2::Subnet::Id
+    Description: Second Private Subnet
+  EC2ImageId: 
+    Type: AWS::EC2::Image::Id
+    Default: arn:aws:iam::00:role/aa
+    Description: Name of the Policy
+  EC2Size: 
+    Type: String
+    Default: m4.large
+    Description: Size of the Instance
+  EC2AMI:
+    Type: String
+    Default: ami-4dd6782e
+  EC2SSHIP: 
+    Type: String
+    Default: 0.0.0.0/0
+    Description: IP for SSH Access
+  DBInstanceClass: 
+    Type: String
+    Default: t2.small
+  DBName: 
+    Type: String
+    Default: deepsecurity
+    Description: Name of the Database
+  DBUsername: 
+    Type: String
+    Default: deepsecurity
+    Description: Name of the Policy
+  DBMultiAZ: 
+    Type: String
+    Default: false
+    Description: Name of the Policy
+  DBPassword: 
+    NoEcho: true
+    Default: DZuc8PkvVWgvWA
+    Description: The database admin account password
+    Type: String
+    MinLength: 1
+    MaxLength: 41
+    AllowedPattern: "[a-zA-Z0-9]*"
+Resources:
+
+#  -------------------------------------- IAM Roles
+  EC2InstancePolicy:
+    Type: "AWS::IAM::ManagedPolicy"
+    Properties: 
+      PolicyDocument: 
+        Version: "2012-10-17"
+        Statement: 
+          - 
+            Effect: "Allow"
+            Action: 
+              - "iam:ListUsers"
+              - "iam:ListSSHPublicKeys"
+              - "iam:GetSSHPublicKey"
+              - "s3:*"
+            Resource: "*"
+
+
+
+# -------------------------------------- Security Groups
+
+  ELBSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties: 
+      GroupDescription: Security Group of Load Balancer
+      SecurityGroupEgress:
+        - 
+          IpProtocol: "tcp"
+          FromPort: "443"
+          ToPort: "443"
+          CidrIp: "0.0.0.0/0"
+        - 
+          IpProtocol: "tcp"
+          FromPort: "80"
+          ToPort: "80"
+          CidrIp: "0.0.0.0/0"
+      SecurityGroupIngress:
+        - 
+          IpProtocol: "tcp"
+          FromPort: "443"
+          ToPort: "443"
+          CidrIp: "0.0.0.0/0"
+        - 
+          IpProtocol: "tcp"
+          FromPort: "80"
+          ToPort: "80"
+          CidrIp: "0.0.0.0/0"
+      VpcId: 
+        Ref: VPC
+  
+  EC2SecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties: 
+      GroupDescription: Security Group of the Oracle RDS Instance
+      SecurityGroupEgress:
+        - 
+          IpProtocol: "tcp"
+          FromPort: "0"
+          ToPort: "0"
+          CidrIp: "0.0.0.0/0"
+      SecurityGroupIngress:
+        - 
+          IpProtocol: "tcp"
+          FromPort: "22"
+          ToPort: "22"
+          CidrIp: 
+            Ref: EC2SSHIP
+        - 
+          IpProtocol: "tcp"
+          FromPort: "80"
+          ToPort: "80"
+          SourceSecurityGroupName:
+            Ref: ELBSecurityGroup
+        - 
+          IpProtocol: "tcp"
+          FromPort: "443"
+          ToPort: "443"
+          SourceSecurityGroupName:
+            Ref: ELBSecurityGroup
+      VpcId: 
+        Ref: VPC
+
+
+  DBSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties: 
+      GroupDescription: Security Group of the Oracle RDS Instance
+      SecurityGroupIngress:
+        - 
+          IpProtocol: "tcp"
+          FromPort: "1521"
+          ToPort: "1521"
+          SourceSecurityGroupName:
+            Ref: EC2SecurityGroup
+      VpcId: 
+        Ref: VPC
+
+
+
+
+
+
+
+
+
+#  -------------------------------------- Databases
+
+  DBSubnetGroup:
+    Type: "AWS::RDS::DBSubnetGroup"
+    Properties: 
+      DBSubnetGroupDescription: String
+      SubnetIds:
+        - !Ref PrivateSubnetA
+        - !Ref PrivateSubnetB
+
+  RDS1:
+    Type: "AWS::RDS::DBInstance"
+    Properties:
+      AllowMajorVersionUpgrade: true
+      AutoMinorVersionUpgrade: true
+      DBInstanceClass: 
+        Ref: DBInstanceClass
+      DBInstanceIdentifier: 
+        Ref: DBName
+      DBName: 
+        Ref: DBName
+      DBSecurityGroups:
+        - !Ref DBSecurityGroup
+      DBSubnetGroupName: 
+        Ref: DBSubnetGroup
+      Engine: oracle-se2
+      EngineVersion: 12.1.0.2.v4
+      
+      LicenseModel: license-included
+
+      MasterUserName: 
+        Ref: DBUsername
+      MasterUserPassword: 
+        Ref: DBPassword
+      MultiAZ: 
+        Ref: DBMultiAZ
+      VPCSecurityGroups:
+        - !Ref DBSecurityGroup
+
+
+#  -------------------------------------- Load Balancers
+
+
+
+
+
+
+#  -------------------------------------- Deep Security Managers
+  DSM1:
+    Type: "AWS::EC2::Instance"
+    Properties: 
+      IamInstanceProfile: 
+        Ref: EC2InstancePolicy
+      ImageId: 
+        Ref: EC2AMI
+      InstanceType: 
+        Ref: EC2Size
+      Monitoring: true
+      SecurityGroupIds: 
+        - !Ref EC2SecurityGroup
+      SubnetId: 
+        Ref: PublicSubnetA
+      UserData: String
+
+
+
+
+# Associations

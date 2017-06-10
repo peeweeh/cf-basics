@@ -1,0 +1,46 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Creates a Security Group for Deep Security as a Service
+Parameters: 
+  MainVPC: 
+    Type: String
+Resources:
+  DeepSecurityAsAService:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Web Server Security Group
+      SecurityGroupIngress:
+      - CidrIp: 34.205.5.0/27
+        IpProtocol: TCP
+        FromPort: '0'
+        ToPort: '63356'
+      SecurityGroupEgress:
+      - CidrIp: 34.192.145.157/32
+        IpProtocol: TCP
+        FromPort: '0'
+        ToPort: '63356'
+      - CidrIp: 34.194.74.60/32
+        IpProtocol: TCP
+        FromPort: '0'
+        ToPort: '63356'
+      - CidrIp: 54.86.2.200/32
+        IpProtocol: TCP
+        FromPort: '0'
+        ToPort: '63356'
+      - CidrIp: 54.208.106.230/32
+        IpProtocol: TCP
+        FromPort: '0'
+        ToPort: '63356'
+      - CidrIp: 34.204.219.38/32
+        IpProtocol: TCP
+        FromPort: '0'
+        ToPort: '63356'
+      VpcId:
+        Ref: MainVPC
+      Tags:
+        -
+          Key: Name
+          Value: deep-security-as-a-service
+
+Outputs:
+  DeepSecurityAsAService:
+    Value: !Ref DeepSecurityAsAService
